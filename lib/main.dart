@@ -21,6 +21,7 @@ class MyApp extends StatelessWidget {
 }
 
 class HomeScreen extends StatelessWidget {
+  final GlobalKey<ScaffoldState> scaffoldState = GlobalKey<ScaffoldState>();
   final Firestore firestore = Firestore.instance;
   final AppColor appColor = AppColor();
   final List<Map<String, dynamic>> datas = [
@@ -43,6 +44,7 @@ class HomeScreen extends StatelessWidget {
     double heightScreen = mediaQueryData.size.height;
 
     return Scaffold(
+      key: scaffoldState,
       backgroundColor: appColor.colorPrimary,
       body: SafeArea(
         child: Stack(
@@ -57,8 +59,14 @@ class HomeScreen extends StatelessWidget {
           Icons.add,
           color: Colors.white,
         ),
-        onPressed: () {
-          Navigator.push(context, MaterialPageRoute(builder: (context) => CreateTaskScreen()));
+        onPressed: () async {
+          bool result = await Navigator.push(context, MaterialPageRoute(builder: (context) => CreateTaskScreen()));
+          if (result != null && result) {
+            scaffoldState.currentState.showSnackBar(SnackBar(
+              content: Text('Task has been created'),
+            ));
+            // TODO: do something in here  
+          }
         },
         backgroundColor: appColor.colorTertiary,
       ),

@@ -28,6 +28,8 @@ dependencies:
   # and offline support on Android and iOS.
   cloud_firestore: ^0.13.2+1
 
+  # Plugin for provides internationalization and localization, facilities, including message
+  # translation, plurals and genders, date/number formatting and parsing, and bidirectional text
   intl: ^0.16.1
 
 dev_dependencies:

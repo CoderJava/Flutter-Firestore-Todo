@@ -10,6 +10,7 @@ class CreateTaskScreen extends StatefulWidget {
 }
 
 class _CreateTaskScreenState extends State<CreateTaskScreen> {
+  final GlobalKey<ScaffoldState> scaffoldState = GlobalKey<ScaffoldState>();
   final Firestore firestore = Firestore.instance;
   final AppColor appColor = AppColor();
   final TextEditingController controllerName = TextEditingController();
@@ -18,12 +19,12 @@ class _CreateTaskScreenState extends State<CreateTaskScreen> {
 
   double widthScreen;
   double heightScreen;
-  String strDate;
+  DateTime date = DateTime.now().add(Duration(days: 1));
+  bool isLoading = false;
 
   @override
   void initState() {
-    strDate = DateFormat('EEEE dd, MMMM').format(DateTime.now());
-    controllerDate.text = strDate;
+    controllerDate.text = DateFormat('dd MMMM yyyy').format(date);
     super.initState();
   }
 
@@ -34,6 +35,7 @@ class _CreateTaskScreenState extends State<CreateTaskScreen> {
     heightScreen = mediaQueryData.size.height;
 
     return Scaffold(
+      key: scaffoldState,
       backgroundColor: appColor.colorPrimary,
       resizeToAvoidBottomInset: false,
       body: SafeArea(
@@ -49,7 +51,17 @@ class _CreateTaskScreenState extends State<CreateTaskScreen> {
                   _buildWidgetFormPrimary(),
                   SizedBox(height: 16.0),
                   _buildWidgetFormSecondary(),
-                  _buildWidgetButtonCreateTask(),
+                  isLoading
+                      ? Container(
+                          color: Colors.white,
+                          padding: const EdgeInsets.all(16.0),
+                          child: Center(
+                            child: CircularProgressIndicator(
+                              valueColor: AlwaysStoppedAnimation<Color>(appColor.colorTertiary),
+                            ),
+                          ),
+                        )
+                      : _buildWidgetButtonCreateTask(),
                 ],
               ),
             ),
@@ -65,9 +77,14 @@ class _CreateTaskScreenState extends State<CreateTaskScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
-          Icon(
-            Icons.arrow_back,
-            color: Colors.grey[800],
+          GestureDetector(
+            onTap: () {
+              Navigator.pop(context);
+            },
+            child: Icon(
+              Icons.arrow_back,
+              color: Colors.grey[800],
+            ),
           ),
           SizedBox(height: 16.0),
           Text(
@@ -116,24 +133,32 @@ class _CreateTaskScreenState extends State<CreateTaskScreen> {
               style: TextStyle(fontSize: 18.0),
             ),
             SizedBox(height: 16.0),
-            GestureDetector(
-              onTap: () {
-                // TODO: do something in here
-              },
-              child: TextField(
-                controller: controllerDate,
-                decoration: InputDecoration(
-                  labelText: 'Date',
-                  suffixIcon: Column(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: <Widget>[
-                      Icon(Icons.today),
-                    ],
-                  ),
+            TextField(
+              controller: controllerDate,
+              decoration: InputDecoration(
+                labelText: 'Date',
+                suffixIcon: Column(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: <Widget>[
+                    Icon(Icons.today),
+                  ],
                 ),
-                style: TextStyle(fontSize: 18.0),
-                enabled: false,
               ),
+              style: TextStyle(fontSize: 18.0),
+              readOnly: true,
+              onTap: () async {
+                DateTime today = DateTime.now();
+                DateTime datePicker = await showDatePicker(
+                  context: context,
+                  initialDate: date,
+                  firstDate: today,
+                  lastDate: DateTime(2021),
+                );
+                if (datePicker != null) {
+                  date = datePicker;
+                  controllerDate.text = DateFormat('dd MMMM yyyy').format(date);
+                }
+              },
             ),
           ],
         ),
@@ -153,11 +178,35 @@ class _CreateTaskScreenState extends State<CreateTaskScreen> {
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(4.0),
         ),
-        onPressed: () {
-          // TODO: do something in here
+        onPressed: () async {
+          String name = controllerName.text;
+          String description = controllerDescription.text;
+          String date = controllerDate.text;
+          if (name.isEmpty) {
+            _showSnackBarMessage('Name is required');
+            return;
+          } else if (description.isEmpty) {
+            _showSnackBarMessage('Description is required');
+            return;
+          }
+          setState(() => isLoading = true);
+          CollectionReference tasks = firestore.collection('tasks');
+          DocumentReference result = await tasks.add(<String, dynamic>{
+            'name': name,
+            'description': description,
+            'date': date,
+          });
+          if (result.documentID != null) {
+            Navigator.pop(context, true);
+          }
         },
       ),
     );
   }
 
+  void _showSnackBarMessage(String message) {
+    scaffoldState.currentState.showSnackBar(SnackBar(
+      content: Text(message),
+    ));
+  }
 }
