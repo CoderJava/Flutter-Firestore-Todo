@@ -1,5 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_firestore_todo/app_color.dart';
+import 'package:flutter_firestore_todo/create_task_screen.dart';
+import 'package:flutter_firestore_todo/widget_background.dart';
 
 void main() => runApp(MyApp());
 
@@ -10,7 +13,7 @@ class MyApp extends StatelessWidget {
       title: 'Flutter Demo',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        primaryColor: Color(0xFFFBE4D4),
+        primaryColor: AppColor().colorSecondary,
       ),
       home: HomeScreen(),
     );
@@ -19,9 +22,7 @@ class MyApp extends StatelessWidget {
 
 class HomeScreen extends StatelessWidget {
   final Firestore firestore = Firestore.instance;
-  final Color colorPrimary = Color(0xFFFBE4D4);
-  final Color colorSecondary = Color(0xFFEC81B7);
-  final Color colorTertiary = Color(0xFF425195);
+  final AppColor appColor = AppColor();
   final List<Map<String, dynamic>> datas = [
     {
       'task_name': 'Eat Breakfast',
@@ -42,38 +43,24 @@ class HomeScreen extends StatelessWidget {
     double heightScreen = mediaQueryData.size.height;
 
     return Scaffold(
-      backgroundColor: colorPrimary,
+      backgroundColor: appColor.colorPrimary,
       body: SafeArea(
         child: Stack(
           children: <Widget>[
-            Positioned(
-              top: -64,
-              right: -128,
-              child: Container(
-                width: 256.0,
-                height: 256.0,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(9000),
-                  color: colorTertiary,
-                ),
-              ),
-            ),
-            Positioned(
-              top: -164,
-              right: -8.0,
-              child: Container(
-                width: 256.0,
-                height: 256.0,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(9000),
-                  backgroundBlendMode: BlendMode.hardLight,
-                  color: Colors.redAccent.withOpacity(0.8),
-                ),
-              ),
-            ),
+            WidgetBackground(),
             _buildWidgetListTodo(widthScreen, heightScreen, context),
           ],
         ),
+      ),
+      floatingActionButton: FloatingActionButton(
+        child: Icon(
+          Icons.add,
+          color: Colors.white,
+        ),
+        onPressed: () {
+          Navigator.push(context, MaterialPageRoute(builder: (context) => CreateTaskScreen()));
+        },
+        backgroundColor: appColor.colorTertiary,
       ),
     );
   }
