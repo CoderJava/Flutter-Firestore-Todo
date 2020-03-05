@@ -20,22 +20,15 @@ class MyApp extends StatelessWidget {
   }
 }
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
+  @override
+  _HomeScreenState createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
   final GlobalKey<ScaffoldState> scaffoldState = GlobalKey<ScaffoldState>();
   final Firestore firestore = Firestore.instance;
   final AppColor appColor = AppColor();
-  final List<Map<String, dynamic>> datas = [
-    {
-      'task_name': 'Eat Breakfast',
-      'date': 'Dec 25',
-      'time': '08:00 - 09:00',
-    },
-    {
-      'task_name': 'Read a book',
-      'date': 'Dec 25',
-      'time': '09:00 - 10:00',
-    },
-  ];
 
   @override
   Widget build(BuildContext context) {
@@ -65,7 +58,7 @@ class HomeScreen extends StatelessWidget {
             scaffoldState.currentState.showSnackBar(SnackBar(
               content: Text('Task has been created'),
             ));
-            // TODO: do something in here  
+            setState(() {});
           }
         },
         backgroundColor: appColor.colorTertiary,
@@ -83,50 +76,62 @@ class HomeScreen extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.only(left: 16.0, top: 16.0),
             child: Text(
-              'Todo',
+              'Todo List',
               style: Theme.of(context).textTheme.title,
             ),
           ),
           Expanded(
-            child: ListView.builder(
-              padding: EdgeInsets.all(8.0),
-              itemCount: datas.length,
-              itemBuilder: (BuildContext context, int index) {
-                Map<String, dynamic> itemData = datas[index];
-                return Card(
-                  child: Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.max,
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: <Widget>[
-                        Expanded(
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: <Widget>[
-                              Text(
-                                itemData['task_name'],
-                                style: Theme.of(context).textTheme.title.merge(
-                                      TextStyle(fontWeight: FontWeight.normal),
-                                    ),
+            child: StreamBuilder<QuerySnapshot>(
+              stream: firestore.collection('tasks').orderBy('date').snapshots(),
+              builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
+                if (!snapshot.hasData) {
+                  return Center(child: CircularProgressIndicator());
+                }
+                return ListView.builder(
+                  padding: EdgeInsets.all(8.0),
+                  itemCount: snapshot.data.documents.length,
+                  itemBuilder: (BuildContext context, int index) {
+                    DocumentSnapshot document = snapshot.data.documents[index];
+                    Map<String, dynamic> task = document.data;
+                    return Card(
+                      child: Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.max,
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: <Widget>[
+                            Expanded(
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: <Widget>[
+                                  Text(
+                                    task['name'],
+                                    style: Theme.of(context).textTheme.title.merge(
+                                          TextStyle(fontWeight: FontWeight.normal),
+                                        ),
+                                  ),
+                                  SizedBox(height: 4.0),
+                                  Text(
+                                    task['description'],
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: Theme.of(context).textTheme.subtitle.merge(
+                                          TextStyle(color: Colors.grey, fontWeight: FontWeight.normal),
+                                        ),
+                                  ),
+                                ],
                               ),
-                              Text(
-                                itemData['date'] + ', ' + itemData['time'],
-                                style: Theme.of(context).textTheme.subtitle.merge(
-                                      TextStyle(color: Colors.grey, fontWeight: FontWeight.normal),
-                                    ),
-                              ),
-                            ],
-                          ),
+                            ),
+                            Icon(
+                              Icons.more_vert,
+                              color: Colors.grey,
+                            ),
+                          ],
                         ),
-                        Icon(
-                          Icons.more_vert,
-                          color: Colors.grey,
-                        ),
-                      ],
-                    ),
-                  ),
+                      ),
+                    );
+                  },
                 );
               },
             ),
