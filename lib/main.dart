@@ -53,7 +53,7 @@ class _HomeScreenState extends State<HomeScreen> {
           color: Colors.white,
         ),
         onPressed: () async {
-          bool result = await Navigator.push(context, MaterialPageRoute(builder: (context) => CreateTaskScreen()));
+          bool result = await Navigator.push(context, MaterialPageRoute(builder: (context) => CreateTaskScreen(isEdit: false)));
           if (result != null && result) {
             scaffoldState.currentState.showSnackBar(SnackBar(
               content: Text('Task has been created'),
@@ -139,10 +139,26 @@ class _HomeScreenState extends State<HomeScreen> {
                                 child: Text('Delete'),
                               ));
                           },
-                          onSelected: (String value) {
+                          onSelected: (String value) async {
                             if (value == 'edit') {
-                              print('Edit');
-                              // TODO: do something in here
+                              bool result = await Navigator.push(
+                                context,
+                                MaterialPageRoute(builder: (context) {
+                                  return CreateTaskScreen(
+                                    isEdit: true,
+                                    documentId: document.documentID,
+                                    name: task['name'],
+                                    description: task['description'],
+                                    date: task['date'],
+                                  );
+                                }),
+                              );
+                              if (result != null && result) {
+                                scaffoldState.currentState.showSnackBar(SnackBar(
+                                  content: Text('Task has been updated'),
+                                ));
+                                setState(() {});
+                              }
                             } else if (value == 'delete') {
                               showDialog(
                                 context: context,

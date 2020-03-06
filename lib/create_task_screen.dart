@@ -5,6 +5,20 @@ import 'package:flutter_firestore_todo/widget_background.dart';
 import 'package:intl/intl.dart';
 
 class CreateTaskScreen extends StatefulWidget {
+  final bool isEdit;
+  final String documentId;
+  final String name;
+  final String description;
+  final String date;
+
+  CreateTaskScreen({
+    @required this.isEdit,
+    this.documentId = '',
+    this.name = '',
+    this.description = '',
+    this.date = '',
+  });
+
   @override
   _CreateTaskScreenState createState() => _CreateTaskScreenState();
 }
@@ -24,7 +38,14 @@ class _CreateTaskScreenState extends State<CreateTaskScreen> {
 
   @override
   void initState() {
-    controllerDate.text = DateFormat('dd MMMM yyyy').format(date);
+    if (widget.isEdit) {
+      date = DateFormat('dd MMMM yyyy').parse(widget.date);
+      controllerName.text = widget.name;
+      controllerDescription.text = widget.description;
+      controllerDate.text = widget.date;
+    } else {
+      controllerDate.text = DateFormat('dd MMMM yyyy').format(date);
+    }
     super.initState();
   }
 
@@ -173,7 +194,7 @@ class _CreateTaskScreenState extends State<CreateTaskScreen> {
       padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
       child: RaisedButton(
         color: appColor.colorTertiary,
-        child: Text('CREATE TASK'),
+        child: Text(widget.isEdit ? 'UPDATE TASK' : 'CREATE TASK'),
         textColor: Colors.white,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(4.0),
@@ -190,14 +211,32 @@ class _CreateTaskScreenState extends State<CreateTaskScreen> {
             return;
           }
           setState(() => isLoading = true);
-          CollectionReference tasks = firestore.collection('tasks');
-          DocumentReference result = await tasks.add(<String, dynamic>{
-            'name': name,
-            'description': description,
-            'date': date,
-          });
-          if (result.documentID != null) {
-            Navigator.pop(context, true);
+          if (widget.isEdit) {
+            DocumentReference documentTask = firestore.document('tasks/${widget.documentId}');
+            firestore.runTransaction((transaction) async {
+              DocumentSnapshot task = await transaction.get(documentTask);
+              if (task.exists) {
+                await transaction.update(
+                  documentTask,
+                  <String, dynamic>{
+                    'name': name,
+                    'description': description,
+                    'date': date,
+                  },
+                );
+                Navigator.pop(context, true);
+              }
+            });
+          } else {
+            CollectionReference tasks = firestore.collection('tasks');
+            DocumentReference result = await tasks.add(<String, dynamic>{
+              'name': name,
+              'description': description,
+              'date': date,
+            });
+            if (result.documentID != null) {
+              Navigator.pop(context, true);
+            }
           }
         },
       ),
