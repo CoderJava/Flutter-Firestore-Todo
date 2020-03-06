@@ -93,24 +93,40 @@ class _HomeScreenState extends State<HomeScreen> {
                   itemBuilder: (BuildContext context, int index) {
                     DocumentSnapshot document = snapshot.data.documents[index];
                     Map<String, dynamic> task = document.data;
+                    String strDate = task['date'];
                     return Card(
                       child: ListTile(
                         title: Text(task['name']),
-                        subtitle: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
+                        subtitle: Text(
+                          task['description'],
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        isThreeLine: false,
+                        leading: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
                           children: <Widget>[
-                            Text(
-                              task['description'],
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
+                            Container(
+                              width: 24.0,
+                              height: 24.0,
+                              decoration: BoxDecoration(
+                                color: appColor.colorSecondary,
+                                shape: BoxShape.circle,
+                              ),
+                              child: Center(
+                                child: Text(
+                                  '${int.parse(strDate.split(' ')[0])}',
+                                  style: TextStyle(color: Colors.white),
+                                ),
+                              ),
                             ),
+                            SizedBox(height: 4.0),
                             Text(
-                              task['date'],
-                              maxLines: 1,
+                              strDate.split(' ')[1],
+                              style: TextStyle(fontSize: 12.0),
                             ),
                           ],
                         ),
-                        isThreeLine: true,
                         trailing: PopupMenuButton(
                           itemBuilder: (BuildContext context) {
                             return List<PopupMenuEntry<String>>()
