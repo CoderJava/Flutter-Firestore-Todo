@@ -94,40 +94,68 @@ class _HomeScreenState extends State<HomeScreen> {
                     DocumentSnapshot document = snapshot.data.documents[index];
                     Map<String, dynamic> task = document.data;
                     return Card(
-                      child: Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.max,
-                          crossAxisAlignment: CrossAxisAlignment.center,
+                      child: ListTile(
+                        title: Text(task['name']),
+                        subtitle: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: <Widget>[
-                            Expanded(
-                              child: Column(
-                                mainAxisSize: MainAxisSize.min,
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: <Widget>[
-                                  Text(
-                                    task['name'],
-                                    style: Theme.of(context).textTheme.title.merge(
-                                          TextStyle(fontWeight: FontWeight.normal),
-                                        ),
-                                  ),
-                                  SizedBox(height: 4.0),
-                                  Text(
-                                    task['description'],
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: Theme.of(context).textTheme.subtitle.merge(
-                                          TextStyle(color: Colors.grey, fontWeight: FontWeight.normal),
-                                        ),
-                                  ),
-                                ],
-                              ),
+                            Text(
+                              task['description'],
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
                             ),
-                            Icon(
-                              Icons.more_vert,
-                              color: Colors.grey,
+                            Text(
+                              task['date'],
+                              maxLines: 1,
                             ),
                           ],
+                        ),
+                        isThreeLine: true,
+                        trailing: PopupMenuButton(
+                          itemBuilder: (BuildContext context) {
+                            return List<PopupMenuEntry<String>>()
+                              ..add(PopupMenuItem<String>(
+                                value: 'edit',
+                                child: Text('Edit'),
+                              ))
+                              ..add(PopupMenuItem<String>(
+                                value: 'delete',
+                                child: Text('Delete'),
+                              ));
+                          },
+                          onSelected: (String value) {
+                            if (value == 'edit') {
+                              print('Edit');
+                              // TODO: do something in here
+                            } else if (value == 'delete') {
+                              showDialog(
+                                context: context,
+                                builder: (BuildContext context) {
+                                  return AlertDialog(
+                                    title: Text('Are You Sure'),
+                                    content: Text('Do you want to delete ${task['name']}?'),
+                                    actions: <Widget>[
+                                      FlatButton(
+                                        child: Text('No'),
+                                        onPressed: () {
+                                          Navigator.pop(context);
+                                        },
+                                      ),
+                                      FlatButton(
+                                        child: Text('Delete'),
+                                        onPressed: () {
+                                          document.reference.delete();
+                                          Navigator.pop(context);
+                                          setState(() {});
+                                        },
+                                      ),
+                                    ],
+                                  );
+                                },
+                              );
+                            }
+                          },
+                          child: Icon(Icons.more_vert),
                         ),
                       ),
                     );
