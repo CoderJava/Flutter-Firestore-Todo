@@ -77,7 +77,10 @@ class _HomeScreenState extends State<HomeScreen> {
             padding: const EdgeInsets.only(left: 16.0, top: 16.0),
             child: Text(
               'Todo List',
-              style: Theme.of(context).textTheme.title,
+              style: Theme
+                  .of(context)
+                  .textTheme
+                  .title,
             ),
           ),
           Expanded(
@@ -133,8 +136,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               ..add(PopupMenuItem<String>(
                                 value: 'edit',
                                 child: Text('Edit'),
-                              ))
-                              ..add(PopupMenuItem<String>(
+                              ))..add(PopupMenuItem<String>(
                                 value: 'delete',
                                 child: Text('Delete'),
                               ));

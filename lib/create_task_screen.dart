@@ -109,7 +109,7 @@ class _CreateTaskScreenState extends State<CreateTaskScreen> {
           ),
           SizedBox(height: 16.0),
           Text(
-            'Create\nNew Task',
+            widget.isEdit ? 'Edit\nTask' : 'Create\nNew Task',
             style: Theme.of(context).textTheme.display1.merge(
                   TextStyle(color: Colors.grey[800]),
                 ),
